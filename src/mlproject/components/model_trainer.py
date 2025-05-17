@@ -1,7 +1,11 @@
 import os
 import sys
+import mlflow
+import mlflow.sklearn
+from urllib.parse import urlparse
+from dotenv import load_dotenv
 from dataclasses import dataclass
-
+load_dotenv()
 from catboost import CatBoostRegressor
 from sklearn.ensemble import (
     AdaBoostRegressor,
@@ -14,7 +18,8 @@ from sklearn.metrics import r2_score
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
-
+import numpy as np
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from src.mlproject.logger import logging
 from src.mlproject.exception import CustomException
 
@@ -29,6 +34,13 @@ class ModelTrainerConfig:
 class ModelTrainer:
     def __init__(self):
         self.model_trainer_config = ModelTrainerConfig()
+    
+    def eval_metrics(self , actual , pred):
+        rmse = np.sqrt(mean_squared_error(actual , pred))
+        mae = mean_absolute_error(actual , pred)
+        r2 = r2_score(actual , pred)
+        return rmse , mae , r2
+    
     
     
     def initiate_model_trainer(self, train_array, test_array):
@@ -102,6 +114,44 @@ class ModelTrainer:
             # best_model_name = max(sorted(model_report), key=model_report.get)
             best_model_name = list(model_report.keys())[list(model_report.values()).index(best_model_score)]
             best_model = models[best_model_name]
+            
+            print("This is the best model name", best_model_name)
+            
+            model_names = list(params.keys())
+            actual_model = ""
+            
+            for model in model_names:
+                if best_model_name == model:
+                    actual_model = actual_model + model
+                    
+            best_param = params[actual_model]
+            
+            
+            # DAGSHub MLflow tracking
+            mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+            os.environ["MLFLOW_TRACKING_USERNAME"] = os.getenv("MLFLOW_TRACKING_USERNAME")
+            os.environ["MLFLOW_TRACKING_PASSWORD"] = os.getenv("MLFLOW_TRACKING_PASSWORD")
+            tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+
+            # ml flow
+            with mlflow.start_run():
+                
+                predicted_qualities = best_model.predict(X_test)
+                
+                (rmse , mae , r2) = self.eval_metrics(y_test , predicted_qualities)
+                
+                
+                mlflow.log_params(best_param)
+
+                
+                mlflow.log_metric("rmse" , rmse)
+                mlflow.log_metric("mae" , mae)
+                mlflow.log_metric("r2" , r2)
+            
+                if tracking_url_type_store != "file":
+                    
+                    mlflow.sklearn.log_model(best_model  , "model" , registered_model_name = best_model_name)
+                    
             if best_model_score < 0.6:
                 raise CustomException("No best model found")
             logging.info(f"Best model found: {best_model_name} with score: {best_model_score}")

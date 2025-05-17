@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/vivek%20gupta/Desktop/End_to_end_project/ML_Project/mlruns/0/d04f1c16421948fa89816d46b411aede/artifacts
+end_time: 1747451270012
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: d04f1c16421948fa89816d46b411aede
+run_name: hilarious-fox-671
+run_uuid: d04f1c16421948fa89816d46b411aede
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747451269951
+status: 3
+tags: []
+user_id: root
