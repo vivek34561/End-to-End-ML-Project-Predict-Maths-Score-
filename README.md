@@ -136,5 +136,5 @@ Logs are saved under the `/logs` directory.
 
 Maintained by Vivek Kumar Gupta . Feel free to contribute or raise an issue.
 
-For any inquiries, please reach out via email or GitHub.
+For any inquiries, please reach out via email (vivekgupta3749@gmail.com) or GitHub.
 
