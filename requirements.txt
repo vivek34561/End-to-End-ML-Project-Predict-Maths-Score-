@@ -9,3 +9,5 @@ seaborn
 catboost
 xgboost
 mlflow
+streamlit
+joblib
